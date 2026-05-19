@@ -227,7 +227,7 @@ body{
 /* ═══════════════════════════════════════
    PUZZLE SCREEN
 ═══════════════════════════════════════ */
-#screen-game.active{padding:12px 10px 120px}
+#screen-game.active{padding:12px 10px 160px}
 .puzzle-area{
   width:100%;display:flex;gap:8px;justify-content:center;align-items:flex-start;
   margin-bottom:12px;
@@ -262,48 +262,43 @@ body{
   user-select:none;
 }
 
-/* Numpad (fixed bottom) */
+/* Prime-pad (fixed bottom) */
 #numpad-wrap{
   display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);
   width:100%;max-width:520px;z-index:800;
   background:var(--bg2);border-top:1px solid var(--border2);
-  padding:8px 10px 16px;
+  padding:10px 12px 18px;
   box-shadow:0 -8px 30px rgba(0,0,0,0.6);
 }
 .numpad-info{
   display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:6px;padding:0 2px;
+  margin-bottom:8px;padding:0 2px;
 }
-.np-selected-hint{font-family:var(--mono);font-size:0.7rem;color:var(--ink-dim);letter-spacing:1px}
+.np-selected-hint{font-family:var(--mono);font-size:0.68rem;color:var(--ink-dim);letter-spacing:1px}
 .np-current-val{
-  font-family:var(--mono);font-size:1.3rem;color:var(--prime);
-  min-width:60px;text-align:right;letter-spacing:2px;
+  font-family:var(--mono);font-size:1.1rem;color:var(--prime);
+  letter-spacing:2px;
 }
-.numpad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.np-btn{
-  padding:0;height:50px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:8px;color:var(--ink);
-  font-family:var(--mono);font-size:1.4rem;
-  cursor:pointer;transition:background 0.08s,transform 0.07s;
+/* 6 prime buttons in 2 rows × 3 */
+.prime-pad{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+}
+.pp-btn{
+  padding:0;height:58px;
+  background:var(--bg3);border:1.5px solid var(--border2);
+  border-radius:10px;color:var(--ink);
+  font-family:var(--mono);font-size:1.5rem;
+  cursor:pointer;transition:background 0.1s,border-color 0.1s,transform 0.08s;
   display:flex;align-items:center;justify-content:center;
   user-select:none;-webkit-user-select:none;
+  letter-spacing:1px;
 }
-.np-btn:active{background:var(--prime);color:var(--bg);transform:scale(0.91)}
-.np-btn.np-del{font-size:1.1rem;color:var(--ink-dim)}
-.np-btn.np-ok{
-  background:var(--prime);color:var(--bg);
-  grid-column:span 2;font-size:1rem;letter-spacing:2px;
-}
-.np-btn.np-ok:active{background:#00d4aa}
-/* Prime chips above numpad */
-.prime-chips{display:flex;gap:5px;margin-bottom:7px;justify-content:center;flex-wrap:wrap}
-.prime-chip{
-  padding:5px 12px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:20px;font-family:var(--mono);font-size:0.9rem;color:var(--ink-dim);
-  cursor:pointer;transition:all 0.12s;
-}
-.prime-chip:hover,.prime-chip:active{
-  background:rgba(0,255,204,0.12);border-color:var(--prime);color:var(--prime);
+.pp-btn:hover{border-color:var(--prime);color:var(--prime)}
+.pp-btn:active{background:var(--prime);color:var(--bg);border-color:var(--prime);transform:scale(0.92)}
+/* CLR button — spans full width, smaller */
+.pp-btn.pp-clr{
+  grid-column:span 3;height:40px;font-size:0.85rem;
+  color:var(--ink-dim);letter-spacing:3px;
 }
 
 /* ═══════════════════════════════════════
@@ -424,35 +419,20 @@ body{
 <!-- Install Button -->
 <button id="install-btn" onclick="installApp()">📲 加入主畫面</button>
 
-<!-- Numpad (shared, fixed bottom) -->
+<!-- Prime-pad (fixed bottom) -->
 <div id="numpad-wrap">
   <div class="numpad-info">
     <span class="np-selected-hint" id="np-hint">選擇格子後輸入</span>
-    <span class="np-current-val" id="np-cur">—</span>
+    <span class="np-current-val" id="np-cur"></span>
   </div>
-  <!-- Prime quick-chips -->
-  <div class="prime-chips">
-    <button class="prime-chip" data-val="2">2</button>
-    <button class="prime-chip" data-val="3">3</button>
-    <button class="prime-chip" data-val="5">5</button>
-    <button class="prime-chip" data-val="7">7</button>
-    <button class="prime-chip" data-val="11">11</button>
-    <button class="prime-chip" data-val="13">13</button>
-  </div>
-  <div class="numpad">
-    <button class="np-btn" data-np="1">1</button>
-    <button class="np-btn" data-np="2">2</button>
-    <button class="np-btn" data-np="3">3</button>
-    <button class="np-btn np-del" data-np="del">⌫</button>
-    <button class="np-btn" data-np="4">4</button>
-    <button class="np-btn" data-np="5">5</button>
-    <button class="np-btn" data-np="6">6</button>
-    <button class="np-btn" data-np="0">0</button>
-    <button class="np-btn" data-np="7">7</button>
-    <button class="np-btn" data-np="8">8</button>
-    <button class="np-btn" data-np="9">9</button>
-    <button class="np-btn" data-np="clear" style="font-size:0.8rem;color:var(--ink-dim)">CLR</button>
-    <button class="np-btn np-ok" data-np="ok">OK ✓</button>
+  <div class="prime-pad">
+    <button class="pp-btn" data-prime="2">2</button>
+    <button class="pp-btn" data-prime="3">3</button>
+    <button class="pp-btn" data-prime="5">5</button>
+    <button class="pp-btn" data-prime="7">7</button>
+    <button class="pp-btn" data-prime="11">11</button>
+    <button class="pp-btn" data-prime="13">13</button>
+    <button class="pp-btn pp-clr" data-prime="clr">C L R</button>
   </div>
 </div>
 
@@ -644,7 +624,6 @@ let B_matrix = [];  // puzzle
 let userA    = [];  // player's entries (null = empty)
 let neighborsCache = [];
 let selectedCell = null;  // {r, c}
-let npInput = '';          // current numpad string
 let timerInterval = null;
 let timerSec = 0;
 let puzzleAttempts = 0;
@@ -916,88 +895,51 @@ function buildPuzzleUI() {
    CELL SELECTION
 ══════════════════════════════════════════════════════════════ */
 function selectCell(r, c) {
-  // Deselect old
   if (selectedCell) {
     const old = document.getElementById(`a-${selectedCell.r}-${selectedCell.c}`);
     if (old) old.style.outline = '';
   }
   selectedCell = {r, c};
-  npInput = userA[r][c] !== null ? String(userA[r][c]) : '';
-
   const el = document.getElementById(`a-${r}-${c}`);
   if (el) el.style.outline = '2px solid var(--prime)';
-
-  // Update numpad display
   document.getElementById('np-hint').textContent = `填入 (${r+1},${c+1})`;
-  updateNpDisplay();
+  // Show current value in header
+  const cur = userA[r][c];
+  document.getElementById('np-cur').textContent = cur !== null ? cur : '';
   showNumpad();
 }
 
-function updateNpDisplay() {
-  document.getElementById('np-cur').textContent = npInput || '—';
-}
-
 /* ══════════════════════════════════════════════════════════════
-   NUMPAD
+   PRIME-PAD
 ══════════════════════════════════════════════════════════════ */
 function showNumpad() { document.getElementById('numpad-wrap').style.display = 'block'; }
 function hideNumpad() { document.getElementById('numpad-wrap').style.display = 'none'; }
 
-// Wire up numpad buttons
-document.querySelectorAll('.np-btn').forEach(btn => {
-  btn.addEventListener('click', () => handleNp(btn.dataset.np));
-});
-document.querySelectorAll('.prime-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    if (!selectedCell) return;
-    const val = parseInt(chip.dataset.val);
-    commitValue(val);
+// Wire up prime-pad buttons
+document.querySelectorAll('.pp-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.prime === 'clr') {
+      clearCell();
+    } else {
+      commitValue(parseInt(btn.dataset.prime));
+    }
   });
 });
 
-function handleNp(key) {
+function clearCell() {
   if (!selectedCell) return;
-  if (key === 'del') {
-    npInput = npInput.slice(0,-1);
-  } else if (key === 'clear') {
-    npInput = '';
-  } else if (key === 'ok') {
-    const v = parseInt(npInput, 10);
-    if (!isNaN(v)) commitValue(v);
-    return;
-  } else {
-    if (npInput.length >= 2) npInput = npInput.slice(1);
-    npInput += key;
-  }
-  updateNpDisplay();
+  const {r, c} = selectedCell;
+  userA[r][c] = null;
+  document.getElementById('np-cur').textContent = '';
+  renderCell(r, c);
 }
 
 function commitValue(val) {
   if (!selectedCell) return;
   const {r, c} = selectedCell;
-
-  // Only accept valid primes
-  if (!PRIMES.includes(val)) {
-    const el = document.getElementById(`a-${r}-${c}`);
-    el?.classList.add('shake');
-    setTimeout(() => el?.classList.remove('shake'), 450);
-    npInput = '';
-    updateNpDisplay();
-    document.getElementById('status-bar').className = 'status-bar error';
-    document.getElementById('status-bar').textContent = `❌ 只能填入 2, 3, 5, 7, 11, 13`;
-    setTimeout(() => {
-      document.getElementById('status-bar').className = 'status-bar ok';
-      document.getElementById('status-bar').textContent = `✓ 題目就緒`;
-    }, 1800);
-    return;
-  }
-
   userA[r][c] = val;
-  npInput = '';
-  updateNpDisplay();
+  document.getElementById('np-cur').textContent = val;
   renderCell(r, c);
-
-  // Auto advance to next empty
   autoAdvance(r, c);
 }
 
@@ -1227,18 +1169,23 @@ function clearScores() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   KEYBOARD SUPPORT
+   KEYBOARD SUPPORT (arrow keys + prime shortcuts)
 ══════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   const screen = document.querySelector('.screen.active');
   if (!screen || screen.id !== 'screen-game') return;
-  if (['0','1','2','3','4','5','6','7','8','9'].includes(e.key)) {
-    handleNp(e.key);
-  } else if (e.key === 'Backspace') {
-    handleNp('del');
-  } else if (e.key === 'Enter') {
-    handleNp('ok');
-  } else if (e.key === 'ArrowRight' || e.key === 'Tab') {
+
+  // Prime shortcuts: 2,3,5,7 direct; 1→11, 0→13 (mnemonic)
+  const primeMap = {'2':2,'3':3,'5':5,'7':7,'1':11,'0':13};
+  if (primeMap[e.key] !== undefined) {
+    commitValue(primeMap[e.key]);
+    return;
+  }
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    clearCell(); return;
+  }
+
+  if (e.key === 'ArrowRight' || e.key === 'Tab') {
     e.preventDefault();
     if (selectedCell) {
       let {r, c} = selectedCell;

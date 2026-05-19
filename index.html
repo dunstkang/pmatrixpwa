@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>質數矩陣</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080c14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   CSS VARIABLES & RESET
+═══════════════════════════════════════ */
+:root {
+  --bg:       #080c14;
+  --bg2:      #0d1520;
+  --bg3:      #121d2e;
+  --panel:    #0f1a28;
+  --ink:      #c8dff5;
+  --ink-dim:  #4a6a8a;
+  --ink-muted:#2a4a6a;
+  --prime:    #00ffcc;   /* teal-green, "prime" colour */
+  --prime2:   #ff6b6b;   /* error / wrong */
+  --prime3:   #ffd166;   /* gold / highlight */
+  --blue:     #4da6ff;
+  --border:   #1a2d45;
+  --border2:  #254060;
+  --green:    #00e676;
+  --red:      #ff4444;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Noto Sans TC', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse at 15% 10%, rgba(0,255,204,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 90%, rgba(77,166,255,0.05) 0%, transparent 50%);
+}
+
+/* ═══════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════ */
+.screen{display:none;width:100%;max-width:520px;height:100%;flex-direction:column;align-items:center;overflow-y:auto;padding:16px 14px 24px}
+.screen.active{display:flex}
+
+/* ═══════════════════════════════════════
+   UPDATE BAR
+═══════════════════════════════════════ */
+#update-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#04200f;border-top:2px solid var(--green);
+  padding:12px 20px;align-items:center;justify-content:space-between;
+  gap:12px;font-size:0.85rem;color:var(--ink);
+}
+#update-bar button{
+  padding:8px 18px;background:var(--green);color:#04200f;
+  border:none;border-radius:4px;font-weight:900;cursor:pointer;font-size:0.85rem;white-space:nowrap;
+}
+
+/* ═══════════════════════════════════════
+   INSTALL BUTTON
+═══════════════════════════════════════ */
+#install-btn{
+  display:none;position:fixed;top:12px;right:12px;z-index:998;
+  padding:7px 14px;
+  background:rgba(0,255,204,0.08);border:1.5px solid var(--prime);
+  border-radius:20px;color:var(--prime);
+  font-size:0.75rem;font-family:var(--sans);font-weight:700;
+  cursor:pointer;letter-spacing:1px;
+  backdrop-filter:blur(8px);transition:background 0.15s;
+}
+#install-btn:hover{background:rgba(0,255,204,0.18)}
+
+/* ═══════════════════════════════════════
+   SPLASH
+═══════════════════════════════════════ */
+#screen-splash{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 15%, rgba(0,255,204,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 85%, rgba(77,166,255,0.08) 0%, transparent 55%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;
+}
+.splash-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  margin-bottom:28px;opacity:0.6;
+}
+.splash-cell{
+  width:42px;height:42px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:0.85rem;color:var(--ink-dim);
+  animation:cell-blink 3s ease-in-out infinite;
+}
+.splash-cell:nth-child(2){animation-delay:0.3s}
+.splash-cell:nth-child(3){animation-delay:0.6s}
+.splash-cell:nth-child(4){animation-delay:0.9s}
+.splash-cell:nth-child(5){animation-delay:1.2s;color:var(--prime);border-color:rgba(0,255,204,0.4)}
+.splash-cell:nth-child(6){animation-delay:1.5s}
+.splash-cell:nth-child(7){animation-delay:1.8s}
+.splash-cell:nth-child(8){animation-delay:2.1s}
+.splash-cell:nth-child(9){animation-delay:2.4s}
+@keyframes cell-blink{
+  0%,100%{opacity:0.5}50%{opacity:1}
+}
+.splash-symbol{
+  font-family:var(--mono);font-size:4rem;color:var(--prime);
+  margin-bottom:6px;
+  text-shadow:0 0 40px rgba(0,255,204,0.5);
+  animation:fade-up 0.6s cubic-bezier(0.22,1,0.36,1) both;
+}
+.splash-title{
+  font-family:var(--mono);font-size:1.8rem;letter-spacing:6px;color:var(--ink);
+  animation:fade-up 0.6s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+  margin-bottom:6px;
+}
+.splash-sub{font-size:0.8rem;color:var(--ink-dim);margin-bottom:44px;
+  animation:fade-up 0.6s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes fade-up{
+  from{transform:translateY(16px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+.splash-btn{
+  padding:16px 52px;
+  font-family:var(--mono);font-size:1.1rem;letter-spacing:4px;
+  border:2px solid var(--prime);border-radius:4px;
+  background:transparent;color:var(--prime);cursor:pointer;
+  transition:background 0.15s,color 0.15s,box-shadow 0.15s;
+  animation:fade-up 0.6s 0.3s cubic-bezier(0.22,1,0.36,1) both;
+  position:relative;
+}
+.splash-btn::after{
+  content:'';position:absolute;inset:-2px;border-radius:4px;
+  animation:pulse-ring 2s ease-in-out infinite 0.8s;
+}
+@keyframes pulse-ring{
+  0%{box-shadow:0 0 0 0 rgba(0,255,204,0.4)}
+  70%{box-shadow:0 0 0 14px rgba(0,255,204,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,255,204,0)}
+}
+.splash-btn:hover{background:var(--prime);color:var(--bg);box-shadow:0 0 40px rgba(0,255,204,0.3)}
+.splash-meta{
+  position:absolute;bottom:20px;text-align:center;
+  font-family:var(--mono);font-size:0.7rem;color:var(--ink-dim);opacity:0.5;
+}
+.splash-meta .sv{color:var(--prime);font-size:0.8rem}
+
+/* ═══════════════════════════════════════
+   COMMON COMPONENTS
+═══════════════════════════════════════ */
+.top-bar{
+  width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+}
+.back-btn{
+  background:none;border:1px solid var(--border);color:var(--ink-dim);
+  padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.82rem;
+  transition:all 0.15s;
+}
+.back-btn:hover{border-color:var(--ink-dim);color:var(--ink)}
+.page-title{
+  font-family:var(--mono);font-size:1.5rem;letter-spacing:4px;color:var(--ink);
+  margin-bottom:16px;width:100%;text-align:center;
+}
+.page-title span{color:var(--prime)}
+#version-tag{font-family:var(--mono);font-size:0.65rem;color:var(--ink-dim);opacity:0.4}
+
+/* CARD */
+.card{
+  width:100%;background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:16px;margin-bottom:12px;
+}
+.card-title{
+  font-family:var(--mono);font-size:0.68rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--ink-dim);margin-bottom:12px;
+}
+
+/* SIZE SELECTOR */
+.size-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.size-btn{
+  padding:10px 0;border-radius:6px;border:1.5px solid var(--border);
+  background:var(--bg);color:var(--ink-dim);cursor:pointer;
+  text-align:center;font-family:var(--mono);font-size:0.85rem;
+  transition:all 0.15s;
+}
+.size-btn:hover:not(.selected){border-color:var(--border2);color:var(--ink)}
+.size-btn.selected{border-color:var(--prime);background:rgba(0,255,204,0.08);color:var(--prime)}
+
+/* ACTION BUTTONS */
+.start-btn{
+  width:100%;padding:16px;background:var(--prime);color:var(--bg);
+  border:none;border-radius:8px;
+  font-family:var(--mono);font-size:1.1rem;letter-spacing:3px;
+  cursor:pointer;transition:opacity 0.15s,transform 0.1s;
+  margin-bottom:10px;
+}
+.start-btn:hover{opacity:0.88;transform:translateY(-1px)}
+.start-btn:active{transform:translateY(0)}
+.secondary-btn{
+  width:100%;padding:12px;background:transparent;color:var(--ink-dim);
+  border:1px solid var(--border);border-radius:8px;font-size:0.9rem;cursor:pointer;
+  transition:all 0.15s;font-family:var(--sans);
+}
+.secondary-btn:hover{border-color:var(--prime3);color:var(--prime3)}
+
+/* STATUS BAR */
+.status-bar{
+  width:100%;padding:10px 14px;border-radius:8px;
+  font-family:var(--mono);font-size:0.78rem;text-align:center;
+  margin-bottom:12px;border:1px solid var(--border);background:var(--bg2);
+  color:var(--ink-dim);min-height:38px;display:flex;align-items:center;justify-content:center;
+}
+.status-bar.ok{color:var(--prime);border-color:rgba(0,255,204,0.3);background:rgba(0,255,204,0.04)}
+.status-bar.loading{color:var(--prime3);border-color:rgba(255,209,102,0.3);background:rgba(255,209,102,0.04)}
+.status-bar.error{color:var(--red);border-color:rgba(255,68,68,0.3)}
+
+/* ═══════════════════════════════════════
+   PUZZLE SCREEN
+═══════════════════════════════════════ */
+#screen-game.active{padding:12px 10px 120px}
+.puzzle-area{
+  width:100%;display:flex;gap:8px;justify-content:center;align-items:flex-start;
+  margin-bottom:12px;
+}
+.matrix-wrap{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
+.matrix-label{
+  font-family:var(--mono);font-size:0.68rem;letter-spacing:3px;color:var(--ink-dim);
+  margin-bottom:6px;text-transform:uppercase;
+}
+.matrix-grid{display:inline-grid;gap:4px;align-items:center;justify-items:center}
+.b-cell{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  font-family:var(--mono);color:var(--blue);
+  transition:background 0.2s;
+}
+.a-cell{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;
+  font-family:var(--mono);color:var(--ink);cursor:pointer;
+  transition:all 0.15s;position:relative;overflow:hidden;
+}
+.a-cell:focus{outline:none;border-color:var(--prime);box-shadow:0 0 0 2px rgba(0,255,204,0.2)}
+.a-cell.correct{background:rgba(0,230,118,0.12);border-color:var(--green);color:var(--green)}
+.a-cell.wrong{background:rgba(255,68,68,0.10);border-color:var(--red);color:var(--red)}
+.a-cell.hint{background:rgba(0,255,204,0.08);border-color:var(--prime);color:var(--prime)}
+
+/* Separator ÷ arrow */
+.puzzle-sep{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-muted);font-size:1.4rem;padding:0 4px;padding-top:28px;
+  user-select:none;
+}
+
+/* Numpad (fixed bottom) */
+#numpad-wrap{
+  display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:520px;z-index:800;
+  background:var(--bg2);border-top:1px solid var(--border2);
+  padding:8px 10px 16px;
+  box-shadow:0 -8px 30px rgba(0,0,0,0.6);
+}
+.numpad-info{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:6px;padding:0 2px;
+}
+.np-selected-hint{font-family:var(--mono);font-size:0.7rem;color:var(--ink-dim);letter-spacing:1px}
+.np-current-val{
+  font-family:var(--mono);font-size:1.3rem;color:var(--prime);
+  min-width:60px;text-align:right;letter-spacing:2px;
+}
+.numpad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.np-btn{
+  padding:0;height:50px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:8px;color:var(--ink);
+  font-family:var(--mono);font-size:1.4rem;
+  cursor:pointer;transition:background 0.08s,transform 0.07s;
+  display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;
+}
+.np-btn:active{background:var(--prime);color:var(--bg);transform:scale(0.91)}
+.np-btn.np-del{font-size:1.1rem;color:var(--ink-dim)}
+.np-btn.np-ok{
+  background:var(--prime);color:var(--bg);
+  grid-column:span 2;font-size:1rem;letter-spacing:2px;
+}
+.np-btn.np-ok:active{background:#00d4aa}
+/* Prime chips above numpad */
+.prime-chips{display:flex;gap:5px;margin-bottom:7px;justify-content:center;flex-wrap:wrap}
+.prime-chip{
+  padding:5px 12px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;font-family:var(--mono);font-size:0.9rem;color:var(--ink-dim);
+  cursor:pointer;transition:all 0.12s;
+}
+.prime-chip:hover,.prime-chip:active{
+  background:rgba(0,255,204,0.12);border-color:var(--prime);color:var(--prime);
+}
+
+/* ═══════════════════════════════════════
+   GAME CONTROLS
+═══════════════════════════════════════ */
+.game-actions{
+  width:100%;display:flex;gap:8px;justify-content:center;margin-bottom:6px;flex-wrap:wrap;
+}
+.action-btn{
+  flex:1;min-width:80px;padding:10px 8px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg2);color:var(--ink-dim);
+  font-size:0.82rem;cursor:pointer;transition:all 0.15s;font-family:var(--sans);
+}
+.action-btn:hover{border-color:var(--border2);color:var(--ink)}
+.action-btn.primary{background:rgba(0,255,204,0.1);border-color:var(--prime);color:var(--prime)}
+.action-btn.primary:hover{background:rgba(0,255,204,0.18)}
+.action-btn.danger{border-color:rgba(255,68,68,0.3);color:var(--red)}
+
+/* ═══════════════════════════════════════
+   RESULT / OVERLAY
+═══════════════════════════════════════ */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:900;
+  background:rgba(8,12,20,0.88);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:24px;
+}
+.overlay.active{display:flex}
+.overlay-box{
+  width:100%;max-width:420px;
+  background:var(--panel);border:1px solid var(--border2);border-radius:16px;
+  padding:32px 24px;text-align:center;
+}
+.result-icon{font-size:3.5rem;margin-bottom:12px}
+.result-title{font-family:var(--mono);font-size:1.4rem;letter-spacing:4px;color:var(--prime);margin-bottom:6px}
+.result-sub{font-size:0.85rem;color:var(--ink-dim);margin-bottom:24px}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+
+/* Error details in result */
+.error-note{
+  font-family:var(--mono);font-size:0.75rem;color:var(--red);
+  background:rgba(255,68,68,0.06);border:1px solid rgba(255,68,68,0.2);
+  border-radius:6px;padding:10px 14px;margin-bottom:10px;
+  text-align:left;line-height:1.8;
+}
+
+/* ═══════════════════════════════════════
+   SCORES SCREEN
+═══════════════════════════════════════ */
+.scores-card{
+  width:100%;background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:16px;margin-bottom:10px;
+}
+.scores-card h3{
+  font-family:var(--mono);font-size:0.9rem;letter-spacing:2px;color:var(--prime3);
+  margin-bottom:10px;border-left:3px solid var(--prime3);padding-left:10px;
+}
+.scores-table{width:100%;border-collapse:collapse;font-size:0.85rem}
+.scores-table th{color:var(--ink-dim);font-weight:400;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);font-size:0.72rem}
+.scores-table td{padding:8px 8px;border-bottom:1px solid rgba(26,45,69,0.6)}
+.scores-table tr:last-child td{border-bottom:none}
+
+/* ═══════════════════════════════════════
+   HELP SCREEN
+═══════════════════════════════════════ */
+.rule-block{
+  width:100%;background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:16px;margin-bottom:10px;
+}
+.rule-block h3{font-family:var(--mono);font-size:0.8rem;letter-spacing:2px;color:var(--prime);margin-bottom:10px}
+.rule-block p,.rule-block li{font-size:0.85rem;color:var(--ink-dim);line-height:1.8;margin-bottom:6px}
+.rule-block ul{padding-left:20px}
+.rule-block strong{color:var(--ink)}
+.example-grid{display:flex;gap:10px;align-items:flex-start;margin-top:10px;flex-wrap:wrap}
+.eg-matrix{display:inline-grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.eg-cell{
+  width:36px;height:36px;border-radius:4px;font-family:var(--mono);font-size:0.75rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.eg-b{background:var(--bg2);border:1px solid var(--border2);color:var(--blue)}
+.eg-a{background:var(--bg3);border:1px solid var(--border2);color:var(--prime)}
+.eg-arrow{display:flex;align-items:center;color:var(--ink-dim);font-size:1.2rem;padding-top:14px}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+@keyframes pop{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+.shake{animation:shake 0.4s ease}
+.pop{animation:pop 0.3s ease}
+
+/* Loading spinner */
+.spinner{
+  display:inline-block;width:16px;height:16px;margin-right:8px;
+  border:2px solid rgba(255,209,102,0.3);border-top-color:var(--prime3);
+  border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- Update Bar -->
+<div id="update-bar">
+  <span>✨ 新版本可用</span>
+  <button onclick="location.reload()">立即更新</button>
+</div>
+
+<!-- Install Button -->
+<button id="install-btn" onclick="installApp()">📲 加入主畫面</button>
+
+<!-- Numpad (shared, fixed bottom) -->
+<div id="numpad-wrap">
+  <div class="numpad-info">
+    <span class="np-selected-hint" id="np-hint">選擇格子後輸入</span>
+    <span class="np-current-val" id="np-cur">—</span>
+  </div>
+  <!-- Prime quick-chips -->
+  <div class="prime-chips">
+    <button class="prime-chip" data-val="2">2</button>
+    <button class="prime-chip" data-val="3">3</button>
+    <button class="prime-chip" data-val="5">5</button>
+    <button class="prime-chip" data-val="7">7</button>
+    <button class="prime-chip" data-val="11">11</button>
+    <button class="prime-chip" data-val="13">13</button>
+  </div>
+  <div class="numpad">
+    <button class="np-btn" data-np="1">1</button>
+    <button class="np-btn" data-np="2">2</button>
+    <button class="np-btn" data-np="3">3</button>
+    <button class="np-btn np-del" data-np="del">⌫</button>
+    <button class="np-btn" data-np="4">4</button>
+    <button class="np-btn" data-np="5">5</button>
+    <button class="np-btn" data-np="6">6</button>
+    <button class="np-btn" data-np="0">0</button>
+    <button class="np-btn" data-np="7">7</button>
+    <button class="np-btn" data-np="8">8</button>
+    <button class="np-btn" data-np="9">9</button>
+    <button class="np-btn" data-np="clear" style="font-size:0.8rem;color:var(--ink-dim)">CLR</button>
+    <button class="np-btn np-ok" data-np="ok">OK ✓</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SPLASH
+══════════════════════════ -->
+<div id="screen-splash">
+  <div class="splash-grid">
+    <div class="splash-cell">2</div><div class="splash-cell">6</div><div class="splash-cell">15</div>
+    <div class="splash-cell">4</div><div class="splash-cell">P</div><div class="splash-cell">21</div>
+    <div class="splash-cell">10</div><div class="splash-cell">35</div><div class="splash-cell">6</div>
+  </div>
+  <div class="splash-symbol">[P]</div>
+  <h1 class="splash-title">PRIME MATRIX</h1>
+  <p class="splash-sub">質數矩陣還原挑戰</p>
+  <button class="splash-btn" onclick="splashStart()">S T A R T</button>
+  <div class="splash-meta">
+    <div class="sv" id="splash-version"></div>
+    <div>Prime Matrix Puzzle</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MENU
+══════════════════════════ -->
+<div class="screen" id="screen-menu">
+  <div class="top-bar">
+    <div id="version-tag"></div>
+    <div></div>
+  </div>
+  <div class="page-title">PRIME <span>MATRIX</span></div>
+
+  <div class="card">
+    <div class="card-title">選擇難度 (矩陣大小)</div>
+    <div class="size-grid">
+      <button class="size-btn" data-n="3">3×3</button>
+      <button class="size-btn selected" data-n="4">4×4</button>
+      <button class="size-btn" data-n="5">5×5</button>
+      <button class="size-btn" data-n="6">6×6</button>
+      <button class="size-btn" data-n="7">7×7</button>
+      <button class="size-btn" data-n="8">8×8</button>
+      <button class="size-btn" data-n="9">9×9</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">規則提示</div>
+    <div style="font-family:var(--mono);font-size:0.75rem;color:var(--ink-dim);line-height:2">
+      A 矩陣元素 ∈ {2, 3, 5, 7, 11, 13}<br>
+      B[i][j] = A 矩陣中 (i,j) 位置<b style="color:var(--ink)">上下左右</b>鄰居的乘積<br>
+      角落: 2 鄰 | 邊緣: 3 鄰 | 內部: 4 鄰
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startGame()">▶ 開始挑戰</button>
+  <button class="secondary-btn" onclick="showScreen('scores')">🏆 成績記錄</button>
+  <div style="height:8px"></div>
+  <button class="secondary-btn" onclick="showScreen('help')">❓ 遊戲說明</button>
+</div>
+
+<!-- ══════════════════════════
+     GAME
+══════════════════════════ -->
+<div class="screen" id="screen-game">
+  <div class="top-bar">
+    <button class="back-btn" onclick="confirmBack()">◀ 返回</button>
+    <div id="game-label" style="font-family:var(--mono);font-size:0.78rem;color:var(--ink-dim);letter-spacing:2px"></div>
+    <div id="game-timer" style="font-family:var(--mono);font-size:1rem;color:var(--prime3)">00:00</div>
+  </div>
+  <div id="status-bar" class="status-bar">準備中…</div>
+  <div class="puzzle-area" id="puzzle-area">
+    <!-- Dynamically built -->
+  </div>
+  <div class="game-actions">
+    <button class="action-btn primary" onclick="checkAnswer()">✓ 驗證</button>
+    <button class="action-btn" onclick="showSolution()">💡 解答</button>
+    <button class="action-btn" onclick="clearInputs()">🗑 清空</button>
+    <button class="action-btn" onclick="startGame()">🎲 換題</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SCORES
+══════════════════════════ -->
+<div class="screen" id="screen-scores">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('menu')">◀ 返回</button>
+    <div></div>
+  </div>
+  <div class="page-title">成績<span>記錄</span></div>
+  <div id="scores-list" style="width:100%"></div>
+  <button class="secondary-btn" onclick="clearScores()">🗑 清除所有記錄</button>
+</div>
+
+<!-- ══════════════════════════
+     HELP
+══════════════════════════ -->
+<div class="screen" id="screen-help">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('menu')">◀ 返回</button>
+    <div></div>
+  </div>
+  <div class="page-title">遊戲<span>說明</span></div>
+
+  <div class="rule-block">
+    <h3>🎯 目標</h3>
+    <p>觀察已知的 B 矩陣，利用質因數分解，反推 A 矩陣的每一格。</p>
+  </div>
+
+  <div class="rule-block">
+    <h3>📜 規則</h3>
+    <ul>
+      <li>A 矩陣每格只能填 <strong>2, 3, 5, 7, 11, 13</strong>（可重複）</li>
+      <li>B[i][j] 等於 A 矩陣中位置 (i,j) 的<strong>四方向鄰居乘積</strong></li>
+      <li>角落格子有 2 個鄰居，邊緣 3 個，內部 4 個</li>
+      <li>每道題保證有<strong>唯一解</strong></li>
+    </ul>
+  </div>
+
+  <div class="rule-block">
+    <h3>範例（3×3）</h3>
+    <div style="font-size:0.8rem;color:var(--ink-dim);margin-bottom:10px">A 矩陣 → 計算 B 矩陣</div>
+    <div class="example-grid">
+      <div>
+        <div style="font-family:var(--mono);font-size:0.7rem;color:var(--ink-dim);margin-bottom:4px">A 矩陣</div>
+        <div class="eg-matrix">
+          <div class="eg-cell eg-a">2</div><div class="eg-cell eg-a">3</div><div class="eg-cell eg-a">5</div>
+          <div class="eg-cell eg-a">7</div><div class="eg-cell eg-a">2</div><div class="eg-cell eg-a">3</div>
+          <div class="eg-cell eg-a">5</div><div class="eg-cell eg-a">7</div><div class="eg-cell eg-a">2</div>
+        </div>
+      </div>
+      <div class="eg-arrow">→</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:0.7rem;color:var(--blue);margin-bottom:4px">B 矩陣（你看到的）</div>
+        <div class="eg-matrix">
+          <div class="eg-cell eg-b">21</div><div class="eg-cell eg-b">70</div><div class="eg-cell eg-b">6</div>
+          <div class="eg-cell eg-b">30</div><div class="eg-cell eg-b">525</div><div class="eg-cell eg-b">14</div>
+          <div class="eg-cell eg-b">14</div><div class="eg-cell eg-b">10</div><div class="eg-cell eg-b">21</div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:12px;font-size:0.78rem">例如 B[0][0] = A[0][1] × A[1][0] = 3 × 7 = <strong>21</strong></p>
+  </div>
+
+  <div class="rule-block">
+    <h3>✅ 驗證邏輯</h3>
+    <p>點「驗證」後，程式會<strong>重新計算</strong>你填的 A 矩陣的乘積，與 B 矩陣比對——只要乘積吻合就算正確，不限定必須與原始解相同。</p>
+  </div>
+
+  <div class="rule-block">
+    <h3>⏱ 計時</h3>
+    <p>每道題開始自動計時，答對後記錄最佳時間。</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     RESULT OVERLAY
+══════════════════════════ -->
+<div class="overlay" id="overlay-result">
+  <div class="overlay-box">
+    <div class="result-icon" id="result-icon">🎉</div>
+    <div class="result-title" id="result-title">SOLVED!</div>
+    <div class="result-sub" id="result-sub"></div>
+    <div id="result-error-info"></div>
+    <div class="result-actions">
+      <button class="start-btn" style="margin:0" onclick="closeResult();startGame()">🎲 換題</button>
+      <button class="secondary-btn" style="margin:0" onclick="closeResult()">繼續查看</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════════════════════════ */
+const VERSION    = '2026.05.13-v1.0';
+const CACHE_NAME = `prime-matrix-${VERSION}`;
+const SCORES_KEY = 'prime_matrix_scores_v2';
+const PRIMES     = [2, 3, 5, 7, 11, 13];
+const WEIGHTS    = [35, 30, 20, 10, 5, 5];
+const MAX_ITER   = 30000;
+
+/* ══════════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════════ */
+let N = 4;
+let A_matrix = [];  // correct answer
+let B_matrix = [];  // puzzle
+let userA    = [];  // player's entries (null = empty)
+let neighborsCache = [];
+let selectedCell = null;  // {r, c}
+let npInput = '';          // current numpad string
+let timerInterval = null;
+let timerSec = 0;
+let puzzleAttempts = 0;
+let deferredPrompt = null;
+
+/* ══════════════════════════════════════════════════════════════
+   SERVICE WORKER + PWA
+══════════════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+          document.getElementById('update-bar').style.display = 'flex';
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'VERSION') {
+      document.getElementById('version-tag').textContent = e.data.version;
+      document.getElementById('splash-version').textContent = e.data.version;
+    }
+  });
+  navigator.serviceWorker.ready.then(reg =>
+    reg.active?.postMessage('GET_VERSION')
+  );
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'block';
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('install-btn').style.display = 'none';
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  if (id !== 'game') {
+    hideNumpad();
+    stopTimer();
+  }
+  if (id === 'scores') renderScores();
+}
+
+function splashStart() {
+  document.getElementById('screen-splash').style.display = 'none';
+  showScreen('menu');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIZE SELECTOR
+══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    N = parseInt(btn.dataset.n);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   WEIGHTED RANDOM PRIME
+══════════════════════════════════════════════════════════════ */
+function randPrime() {
+  const total = WEIGHTS.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < PRIMES.length; i++) {
+    r -= WEIGHTS[i];
+    if (r <= 0) return PRIMES[i];
+  }
+  return PRIMES[PRIMES.length - 1];
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NEIGHBOUR CACHE
+══════════════════════════════════════════════════════════════ */
+function buildNeighborCache(n) {
+  const cache = [];
+  for (let r = 0; r < n; r++) {
+    cache.push([]);
+    for (let c = 0; c < n; c++) {
+      const nb = [];
+      for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr = r+dr, nc = c+dc;
+        if (nr>=0 && nr<n && nc>=0 && nc<n) nb.push([nr,nc]);
+      }
+      cache[r].push(nb);
+    }
+  }
+  return cache;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PUZZLE GENERATION
+══════════════════════════════════════════════════════════════ */
+function computeB(a, n, cache) {
+  const b = Array.from({length:n}, () => Array(n).fill(1));
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++)
+      for (const [nr,nc] of cache[r][c])
+        b[r][c] *= a[nr][nc];
+  return b;
+}
+
+function isUnique(B, n, cache) {
+  let count = 0, iter = 0;
+  const cur = Array.from({length:n}, () => Array(n).fill(0));
+
+  function solve(idx) {
+    iter++;
+    if (count > 1 || iter > MAX_ITER) return;
+    if (idx === n*n) { count++; return; }
+    const r = (idx/n)|0, c = idx%n;
+    for (const p of PRIMES) {
+      cur[r][c] = p;
+      let valid = true;
+      for (const [nr,nc] of cache[r][c]) {
+        let prod = 1, unset = 0;
+        for (const [nnr,nnc] of cache[nr][nc]) {
+          const v = cur[nnr][nnc];
+          if (v) prod *= v; else unset++;
+        }
+        if (B[nr][nc] % prod !== 0) { valid=false; break; }
+        if (!unset && prod !== B[nr][nc]) { valid=false; break; }
+      }
+      if (valid) solve(idx+1);
+    }
+    cur[r][c] = 0;
+  }
+
+  solve(0);
+  return count === 1 || iter > MAX_ITER;
+}
+
+function generatePuzzle(n) {
+  const cache = buildNeighborCache(n);
+  let attempts = 0;
+  while (true) {
+    attempts++;
+    const a = Array.from({length:n}, () => Array.from({length:n}, randPrime));
+    const b = computeB(a, n, cache);
+    if (Math.max(...b.flat()) > 999) continue;
+    if (isUnique(b, n, cache)) return { a, b, cache, attempts };
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   START GAME
+══════════════════════════════════════════════════════════════ */
+function startGame() {
+  closeResult();
+  showScreen('game');
+  stopTimer();
+  selectedCell = null;
+  npInput = '';
+
+  const statusEl = document.getElementById('status-bar');
+  statusEl.className = 'status-bar loading';
+  statusEl.innerHTML = '<span class="spinner"></span>生成唯一解題目中…';
+
+  document.getElementById('game-label').textContent = `${N} × ${N}`;
+  document.getElementById('puzzle-area').innerHTML = '';
+
+  // Defer heavy computation so the UI can paint first
+  setTimeout(() => {
+    const { a, b, cache, attempts } = generatePuzzle(N);
+    A_matrix = a;
+    B_matrix = b;
+    neighborsCache = cache;
+    puzzleAttempts = attempts;
+    userA = Array.from({length:N}, () => Array(N).fill(null));
+
+    buildPuzzleUI();
+    statusEl.className = 'status-bar ok';
+    statusEl.textContent = `✓ 題目就緒（嘗試 ${attempts} 次）`;
+    showNumpad();
+    startTimer();
+  }, 50);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUILD UI
+══════════════════════════════════════════════════════════════ */
+function buildPuzzleUI() {
+  const area = document.getElementById('puzzle-area');
+  area.innerHTML = '';
+
+  // Compute cell size based on N and viewport
+  const availW = Math.min(window.innerWidth, 520) - 28;
+  const cellSize = Math.max(28, Math.min(52, Math.floor((availW / 2 - 20) / N)));
+  const fontSize = cellSize >= 40 ? '0.95rem' : cellSize >= 32 ? '0.78rem' : '0.65rem';
+
+  // B matrix
+  const bWrap = document.createElement('div');
+  bWrap.className = 'matrix-wrap';
+  const bLabel = document.createElement('div');
+  bLabel.className = 'matrix-label';
+  bLabel.textContent = `B 矩陣`;
+  bWrap.appendChild(bLabel);
+  const bGrid = document.createElement('div');
+  bGrid.className = 'matrix-grid';
+  bGrid.style.gridTemplateColumns = `repeat(${N}, ${cellSize}px)`;
+
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'b-cell';
+      cell.style.cssText = `width:${cellSize}px;height:${cellSize}px;font-size:${fontSize}`;
+      cell.textContent = B_matrix[r][c];
+      bGrid.appendChild(cell);
+    }
+  }
+  bWrap.appendChild(bGrid);
+
+  // Separator
+  const sep = document.createElement('div');
+  sep.className = 'puzzle-sep';
+  sep.textContent = '→';
+
+  // A matrix
+  const aWrap = document.createElement('div');
+  aWrap.className = 'matrix-wrap';
+  const aLabel = document.createElement('div');
+  aLabel.className = 'matrix-label';
+  aLabel.textContent = `A 矩陣`;
+  aWrap.appendChild(aLabel);
+  const aGrid = document.createElement('div');
+  aGrid.className = 'matrix-grid';
+  aGrid.id = 'a-grid';
+  aGrid.style.gridTemplateColumns = `repeat(${N}, ${cellSize}px)`;
+
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'a-cell';
+      cell.id = `a-${r}-${c}`;
+      cell.tabIndex = 0;
+      cell.style.cssText = `width:${cellSize}px;height:${cellSize}px;font-size:${fontSize}`;
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.textContent = '';
+      cell.addEventListener('click', () => selectCell(r, c));
+      aGrid.appendChild(cell);
+    }
+  }
+  aWrap.appendChild(aGrid);
+
+  area.appendChild(bWrap);
+  area.appendChild(sep);
+  area.appendChild(aWrap);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CELL SELECTION
+══════════════════════════════════════════════════════════════ */
+function selectCell(r, c) {
+  // Deselect old
+  if (selectedCell) {
+    const old = document.getElementById(`a-${selectedCell.r}-${selectedCell.c}`);
+    if (old) old.style.outline = '';
+  }
+  selectedCell = {r, c};
+  npInput = userA[r][c] !== null ? String(userA[r][c]) : '';
+
+  const el = document.getElementById(`a-${r}-${c}`);
+  if (el) el.style.outline = '2px solid var(--prime)';
+
+  // Update numpad display
+  document.getElementById('np-hint').textContent = `填入 (${r+1},${c+1})`;
+  updateNpDisplay();
+  showNumpad();
+}
+
+function updateNpDisplay() {
+  document.getElementById('np-cur').textContent = npInput || '—';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NUMPAD
+══════════════════════════════════════════════════════════════ */
+function showNumpad() { document.getElementById('numpad-wrap').style.display = 'block'; }
+function hideNumpad() { document.getElementById('numpad-wrap').style.display = 'none'; }
+
+// Wire up numpad buttons
+document.querySelectorAll('.np-btn').forEach(btn => {
+  btn.addEventListener('click', () => handleNp(btn.dataset.np));
+});
+document.querySelectorAll('.prime-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (!selectedCell) return;
+    const val = parseInt(chip.dataset.val);
+    commitValue(val);
+  });
+});
+
+function handleNp(key) {
+  if (!selectedCell) return;
+  if (key === 'del') {
+    npInput = npInput.slice(0,-1);
+  } else if (key === 'clear') {
+    npInput = '';
+  } else if (key === 'ok') {
+    const v = parseInt(npInput, 10);
+    if (!isNaN(v)) commitValue(v);
+    return;
+  } else {
+    if (npInput.length >= 2) npInput = npInput.slice(1);
+    npInput += key;
+  }
+  updateNpDisplay();
+}
+
+function commitValue(val) {
+  if (!selectedCell) return;
+  const {r, c} = selectedCell;
+
+  // Only accept valid primes
+  if (!PRIMES.includes(val)) {
+    const el = document.getElementById(`a-${r}-${c}`);
+    el?.classList.add('shake');
+    setTimeout(() => el?.classList.remove('shake'), 450);
+    npInput = '';
+    updateNpDisplay();
+    document.getElementById('status-bar').className = 'status-bar error';
+    document.getElementById('status-bar').textContent = `❌ 只能填入 2, 3, 5, 7, 11, 13`;
+    setTimeout(() => {
+      document.getElementById('status-bar').className = 'status-bar ok';
+      document.getElementById('status-bar').textContent = `✓ 題目就緒`;
+    }, 1800);
+    return;
+  }
+
+  userA[r][c] = val;
+  npInput = '';
+  updateNpDisplay();
+  renderCell(r, c);
+
+  // Auto advance to next empty
+  autoAdvance(r, c);
+}
+
+function autoAdvance(r, c) {
+  // Find next empty cell in reading order
+  let nr = r, nc = c;
+  for (let i = 0; i < N*N; i++) {
+    nc++;
+    if (nc >= N) { nc = 0; nr++; }
+    if (nr >= N) { nr = 0; }
+    if (nr === r && nc === c) break;
+    if (userA[nr][nc] === null) {
+      selectCell(nr, nc);
+      return;
+    }
+  }
+}
+
+function renderCell(r, c) {
+  const el = document.getElementById(`a-${r}-${c}`);
+  if (!el) return;
+  const val = userA[r][c];
+  el.textContent = val !== null ? val : '';
+  el.classList.remove('correct','wrong','hint');
+  if (selectedCell && selectedCell.r === r && selectedCell.c === c)
+    el.style.outline = '2px solid var(--prime)';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════════════════════════ */
+function startTimer() {
+  timerSec = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerSec++;
+    updateTimerDisplay();
+  }, 1000);
+}
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+function updateTimerDisplay() {
+  const m = String(Math.floor(timerSec/60)).padStart(2,'0');
+  const s = String(timerSec%60).padStart(2,'0');
+  document.getElementById('game-timer').textContent = `${m}:${s}`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CHECK ANSWER  ← KEY FIX: validate by recomputing B, not comparing A
+══════════════════════════════════════════════════════════════ */
+function checkAnswer() {
+  let allFilled = true;
+  const errors = [];
+
+  // First pass: check all filled
+  for (let r = 0; r < N; r++)
+    for (let c = 0; c < N; c++)
+      if (userA[r][c] === null) allFilled = false;
+
+  if (!allFilled) {
+    document.getElementById('status-bar').className = 'status-bar error';
+    document.getElementById('status-bar').textContent = '⚠ 還有空格未填寫';
+    return;
+  }
+
+  // Recompute B from user's A and compare
+  const computedB = computeB(userA, N, neighborsCache);
+  let allCorrect = true;
+
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const el = document.getElementById(`a-${r}-${c}`);
+      if (computedB[r][c] === B_matrix[r][c]) {
+        el.classList.remove('wrong');
+        el.classList.add('correct');
+      } else {
+        el.classList.remove('correct');
+        el.classList.add('wrong');
+        allCorrect = false;
+        errors.push(`(${r+1},${c+1}): 乘積應為 ${B_matrix[r][c]}，得 ${computedB[r][c]}`);
+      }
+    }
+  }
+
+  if (allCorrect) {
+    stopTimer();
+    const time = timerSec;
+    saveScore(N, time);
+    showResult(true, time, []);
+  } else {
+    document.getElementById('status-bar').className = 'status-bar error';
+    document.getElementById('status-bar').textContent = `❌ 有 ${errors.length} 格不正確`;
+    showResult(false, 0, errors);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHOW / CLOSE RESULT
+══════════════════════════════════════════════════════════════ */
+function showResult(success, time, errors) {
+  const overlay = document.getElementById('overlay-result');
+  document.getElementById('result-icon').textContent = success ? '🎉' : '🤔';
+  document.getElementById('result-title').textContent = success ? 'SOLVED!' : '再試一次';
+
+  if (success) {
+    const best = getBestTime(N);
+    const isNew = best === time;
+    const m = String(Math.floor(time/60)).padStart(2,'0');
+    const s = String(time%60).padStart(2,'0');
+    document.getElementById('result-sub').textContent =
+      `${N}×${N} 完成！用時 ${m}:${s}${isNew ? ' 🏆 最佳紀錄！' : ''}`;
+    document.getElementById('result-error-info').innerHTML = '';
+  } else {
+    document.getElementById('result-sub').textContent = `發現以下不匹配（共 ${errors.length} 格）：`;
+    const errHtml = errors.slice(0,6).map(e => `<div>${e}</div>`).join('');
+    document.getElementById('result-error-info').innerHTML =
+      `<div class="error-note">${errHtml}${errors.length>6?`<div>…還有 ${errors.length-6} 格</div>`:''}</div>`;
+  }
+
+  overlay.classList.add('active');
+}
+
+function closeResult() {
+  document.getElementById('overlay-result').classList.remove('active');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHOW SOLUTION
+══════════════════════════════════════════════════════════════ */
+function showSolution() {
+  stopTimer();
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      userA[r][c] = A_matrix[r][c];
+      const el = document.getElementById(`a-${r}-${c}`);
+      if (el) {
+        el.textContent = A_matrix[r][c];
+        el.classList.remove('wrong','correct');
+        el.classList.add('hint');
+      }
+    }
+  }
+  document.getElementById('status-bar').className = 'status-bar';
+  document.getElementById('status-bar').textContent = '💡 解答已顯示（不計入記錄）';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CLEAR
+══════════════════════════════════════════════════════════════ */
+function clearInputs() {
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      userA[r][c] = null;
+      const el = document.getElementById(`a-${r}-${c}`);
+      if (el) { el.textContent = ''; el.classList.remove('correct','wrong','hint'); }
+    }
+  }
+  selectedCell = null;
+  npInput = '';
+  updateNpDisplay();
+  document.getElementById('np-hint').textContent = '選擇格子後輸入';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BACK CONFIRMATION
+══════════════════════════════════════════════════════════════ */
+function confirmBack() {
+  if (confirm('確定離開？計時將停止，進度不保留。')) {
+    stopTimer();
+    hideNumpad();
+    showScreen('menu');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCORES
+══════════════════════════════════════════════════════════════ */
+function saveScore(n, timeSec) {
+  const scores = JSON.parse(localStorage.getItem(SCORES_KEY) || '{}');
+  if (!scores[n]) scores[n] = [];
+  const date = new Date().toLocaleDateString('zh-TW');
+  const m = String(Math.floor(timeSec/60)).padStart(2,'0');
+  const s = String(timeSec%60).padStart(2,'0');
+  scores[n].push({ time: timeSec, display: `${m}:${s}`, date });
+  scores[n].sort((a,b) => a.time - b.time);
+  scores[n] = scores[n].slice(0, 10);
+  localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+}
+
+function getBestTime(n) {
+  const scores = JSON.parse(localStorage.getItem(SCORES_KEY) || '{}');
+  const arr = scores[n] || [];
+  return arr.length > 0 ? arr[0].time : null;
+}
+
+function renderScores() {
+  const scores = JSON.parse(localStorage.getItem(SCORES_KEY) || '{}');
+  const el = document.getElementById('scores-list');
+  const medals = ['🥇','🥈','🥉'];
+  let html = '';
+  const sizes = [3,4,5,6,7,8,9];
+  let any = false;
+  for (const n of sizes) {
+    const arr = scores[n] || [];
+    if (!arr.length) continue;
+    any = true;
+    html += `<div class="scores-card"><h3>${n}×${n} 矩陣</h3>
+      <table class="scores-table">
+        <tr><th>名次</th><th>用時</th><th>日期</th></tr>
+        ${arr.map((r,i) => `<tr>
+          <td>${medals[i]||'#'+(i+1)}</td>
+          <td style="color:var(--prime3);font-family:var(--mono)">${r.display}</td>
+          <td style="font-size:0.75rem;color:var(--ink-dim)">${r.date}</td>
+        </tr>`).join('')}
+      </table></div>`;
+  }
+  el.innerHTML = any ? html : '<div style="color:var(--ink-dim);text-align:center;padding:30px;font-size:0.9rem">還沒有記錄，去解一道題吧！</div>';
+}
+
+function clearScores() {
+  if (confirm('確定清除所有成績？')) {
+    localStorage.removeItem(SCORES_KEY);
+    renderScores();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   KEYBOARD SUPPORT
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  const screen = document.querySelector('.screen.active');
+  if (!screen || screen.id !== 'screen-game') return;
+  if (['0','1','2','3','4','5','6','7','8','9'].includes(e.key)) {
+    handleNp(e.key);
+  } else if (e.key === 'Backspace') {
+    handleNp('del');
+  } else if (e.key === 'Enter') {
+    handleNp('ok');
+  } else if (e.key === 'ArrowRight' || e.key === 'Tab') {
+    e.preventDefault();
+    if (selectedCell) {
+      let {r, c} = selectedCell;
+      c++; if (c >= N) { c=0; r++; } if (r >= N) r=0;
+      selectCell(r, c);
+    }
+  } else if (e.key === 'ArrowLeft') {
+    if (selectedCell) {
+      let {r, c} = selectedCell;
+      c--; if (c < 0) { c=N-1; r--; } if (r < 0) r=N-1;
+      selectCell(r, c);
+    }
+  } else if (e.key === 'ArrowDown') {
+    if (selectedCell) {
+      let {r, c} = selectedCell;
+      r++; if (r >= N) r=0;
+      selectCell(r, c);
+    }
+  } else if (e.key === 'ArrowUp') {
+    if (selectedCell) {
+      let {r, c} = selectedCell;
+      r--; if (r < 0) r=N-1;
+      selectCell(r, c);
+    }
+  }
+});
+</script>
+</body>
+</html>

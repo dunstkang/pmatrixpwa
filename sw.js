@@ -1,4 +1,4 @@
-const VERSION    = '2026.05.13-v1.1';      // ← 每次只改這一行
+const VERSION    = '2026.05.13-v1.2';      // ← 每次只改這一行
 const CACHE_NAME = `prime-matrix-${VERSION}`;
 
 self.addEventListener('message', (e) => {

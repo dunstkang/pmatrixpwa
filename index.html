@@ -186,7 +186,7 @@ body{
 }
 
 /* SIZE SELECTOR */
-.size-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.size-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .size-btn{
   padding:10px 0;border-radius:6px;border:1.5px solid var(--border);
   background:var(--bg);color:var(--ink-dim);cursor:pointer;
@@ -473,8 +473,6 @@ body{
       <button class="size-btn" data-n="5">5×5</button>
       <button class="size-btn" data-n="6">6×6</button>
       <button class="size-btn" data-n="7">7×7</button>
-      <button class="size-btn" data-n="8">8×8</button>
-      <button class="size-btn" data-n="9">9×9</button>
     </div>
   </div>
 
@@ -608,7 +606,7 @@ body{
 /* ══════════════════════════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════════════════════════ */
-const VERSION    = '2026.05.13-v1.1';
+const VERSION    = '2026.05.13-v1.2';
 const CACHE_NAME = `prime-matrix-${VERSION}`;
 const SCORES_KEY = 'prime_matrix_scores_v2';
 const PRIMES     = [2, 3, 5, 7, 11, 13];
@@ -1029,8 +1027,10 @@ function checkAnswer() {
   if (allCorrect) {
     stopTimer();
     const time = timerSec;
-    saveScore(N, time);
-    showResult(true, time, []);
+    const prevBest = getBestTime(N);          // 存分前先取舊最佳
+    saveScore(N, time);                        // 存入記錄
+    const isNewBest = prevBest === null || time <= prevBest;
+    showResult(true, time, [], isNewBest);
   } else {
     document.getElementById('status-bar').className = 'status-bar error';
     document.getElementById('status-bar').textContent = `❌ 有 ${errors.length} 格不正確`;
@@ -1041,18 +1041,16 @@ function checkAnswer() {
 /* ══════════════════════════════════════════════════════════════
    SHOW / CLOSE RESULT
 ══════════════════════════════════════════════════════════════ */
-function showResult(success, time, errors) {
+function showResult(success, time, errors, isNewBest = false) {
   const overlay = document.getElementById('overlay-result');
-  document.getElementById('result-icon').textContent = success ? '🎉' : '🤔';
+  document.getElementById('result-icon').textContent = success ? (isNewBest ? '🏆' : '🎉') : '🤔';
   document.getElementById('result-title').textContent = success ? 'SOLVED!' : '再試一次';
 
   if (success) {
-    const best = getBestTime(N);
-    const isNew = best === time;
     const m = String(Math.floor(time/60)).padStart(2,'0');
     const s = String(time%60).padStart(2,'0');
     document.getElementById('result-sub').textContent =
-      `${N}×${N} 完成！用時 ${m}:${s}${isNew ? ' 🏆 最佳紀錄！' : ''}`;
+      `${N}×${N} 完成！用時 ${m}:${s}${isNewBest ? '　🏆 最佳紀錄！' : ''}`;
     document.getElementById('result-error-info').innerHTML = '';
   } else {
     document.getElementById('result-sub').textContent = `發現以下不匹配（共 ${errors.length} 格）：`;
@@ -1142,7 +1140,7 @@ function renderScores() {
   const el = document.getElementById('scores-list');
   const medals = ['🥇','🥈','🥉'];
   let html = '';
-  const sizes = [3,4,5,6,7,8,9];
+  const sizes = [3,4,5,6,7];
   let any = false;
   for (const n of sizes) {
     const arr = scores[n] || [];
